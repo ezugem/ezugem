@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculator — Dipesh Kashyap</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0a0f;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .title {
+    color: #555;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .calc {
+    background: #12121a;
+    border: 1px solid #1e1e2e;
+    border-radius: 16px;
+    padding: 24px;
+    width: 320px;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+  }
+
+  /* DISPLAY */
+  .display {
+    background: #0a0a0f;
+    border: 1px solid #1e1e2e;
+    border-radius: 10px;
+    padding: 20px 20px 16px;
+    margin-bottom: 20px;
+    text-align: right;
+    min-height: 90px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+
+  .display .expr {
+    font-size: 13px;
+    color: #444;
+    min-height: 20px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .display .result {
+    font-size: 36px;
+    color: #e8e8f0;
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* BUTTONS */
+  .buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  .btn {
+    padding: 18px 0;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    outline: none;
+  }
+
+  .btn:active { transform: scale(0.93); }
+
+  /* Number buttons */
+  .btn-num {
+    background: #1e1e2e;
+    color: #e8e8f0;
+  }
+  .btn-num:hover { background: #252535; }
+
+  /* Operator buttons */
+  .btn-op {
+    background: rgba(0,255,136,0.1);
+    color: #00ff88;
+    border: 1px solid rgba(0,255,136,0.2);
+  }
+  .btn-op:hover { background: rgba(0,255,136,0.2); }
+
+  /* Equals button */
+  .btn-eq {
+    background: #00ff88;
+    color: #0a0a0f;
+    grid-column: span 2;
+  }
+  .btn-eq:hover { background: #00e67a; }
+
+  /* Clear button */
+  .btn-clear {
+    background: rgba(255,107,53,0.1);
+    color: #ff6b35;
+    border: 1px solid rgba(255,107,53,0.2);
+  }
+  .btn-clear:hover { background: rgba(255,107,53,0.2); }
+
+  /* Zero spans 2 cols */
+  .btn-zero { grid-column: span 2; }
+
+  .credit {
+    margin-top: 20px;
+    font-size: 10px;
+    color: #333;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .credit span { color: #00ff88; }
+</style>
+</head>
+<body>
+
+<div class="title">// Calculator</div>
+
+<div class="calc">
+  <div class="display">
+    <div class="expr" id="expr"></div>
+    <div class="result" id="result">0</div>
+  </div>
+
+  <div class="buttons">
+    <button class="btn btn-clear" onclick="clearAll()">AC</button>
+    <button class="btn btn-clear" onclick="deleteLast()">⌫</button>
+    <button class="btn btn-op" onclick="inputOp('%')">%</button>
+    <button class="btn btn-op" onclick="inputOp('/')">÷</button>
+
+    <button class="btn btn-num" onclick="inputNum('7')">7</button>
+    <button class="btn btn-num" onclick="inputNum('8')">8</button>
+    <button class="btn btn-num" onclick="inputNum('9')">9</button>
+    <button class="btn btn-op" onclick="inputOp('*')">×</button>
+
+    <button class="btn btn-num" onclick="inputNum('4')">4</button>
+    <button class="btn btn-num" onclick="inputNum('5')">5</button>
+    <button class="btn btn-num" onclick="inputNum('6')">6</button>
+    <button class="btn btn-op" onclick="inputOp('-')">−</button>
+
+    <button class="btn btn-num" onclick="inputNum('1')">1</button>
+    <button class="btn btn-num" onclick="inputNum('2')">2</button>
+    <button class="btn btn-num" onclick="inputNum('3')">3</button>
+    <button class="btn btn-op" onclick="inputOp('+')">+</button>
+
+    <button class="btn btn-num btn-zero" onclick="inputNum('0')">0</button>
+    <button class="btn btn-num" onclick="inputDot()">.</button>
+    <button class="btn btn-eq" onclick="calculate()">=</button>
+  </div>
+</div>
+
+<div class="credit">Built by <span>Dipesh Kashyap</span></div>
+
+<script>
+  let current = '0';
+  let expression = '';
+  let justCalculated = false;
+
+  function updateDisplay() {
+    document.getElementById('result').textContent = current;
+    document.getElementById('expr').textContent = expression;
+  }
+
+  function inputNum(num) {
+    if (justCalculated) {
+      current = num;
+      expression = '';
+      justCalculated = false;
+    } else {
+      current = current === '0' ? num : current + num;
+    }
+    updateDisplay();
+  }
+
+  function inputDot() {
+    if (!current.includes('.')) {
+      current += '.';
+      updateDisplay();
+    }
+  }
+
+  function inputOp(op) {
+    justCalculated = false;
+    expression = current + ' ' + op;
+    current = '0';
+    updateDisplay();
+  }
+
+  function calculate() {
+    if (!expression) return;
+    try {
+      const full = expression + ' ' + current;
+      const result = Function('"use strict"; return (' + full + ')')();
+      expression = full + ' =';
+      current = parseFloat(result.toFixed(10)).toString();
+      justCalculated = true;
+      updateDisplay();
+    } catch {
+      current = 'Error';
+      expression = '';
+      updateDisplay();
+    }
+  }
+
+  function clearAll() {
+    current = '0';
+    expression = '';
+    justCalculated = false;
+    updateDisplay();
+  }
+
+  function deleteLast() {
+    if (justCalculated) { clearAll(); return; }
+    current = current.length > 1 ? current.slice(0, -1) : '0';
+    updateDisplay();
+  }
+
+  // Keyboard support
+  document.addEventListener('keydown', (e) => {
+    if (e.key >= '0' && e.key <= '9') inputNum(e.key);
+    else if (e.key === '.') inputDot();
+    else if (e.key === '+') inputOp('+');
+    else if (e.key === '-') inputOp('-');
+    else if (e.key === '*') inputOp('*');
+    else if (e.key === '/') { e.preventDefault(); inputOp('/'); }
+    else if (e.key === 'Enter' || e.key === '=') calculate();
+    else if (e.key === 'Backspace') deleteLast();
+    else if (e.key === 'Escape') clearAll();
+  });
+</script>
+
+</body>
+</html>
+
